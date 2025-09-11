@@ -1,0 +1,15 @@
+Create a mini web app FastAPI(backend) + NextJS(frontend) + Auth0 with N device functionality. 
+N device functionality - Only N devices are allowed to login concurrently with the same account. For example if we configure N=3, then using a particular account a user can be logged in at atmost 3 devices at a time. 
+
+The moment user logs in using N+1 device they should be prompted to either cancel login or force log out one of the previous logged in devices using the current device. 
+
+The logged out device(when it comes back on the website) should have a graceful logout informing them that they were logged out.
+The private page needs to display Full Name of the user along with their phone number. 
+
+The frontend should have a very polished and professional look.
+
+Determine the appropriate services that would be required for this setup 
+
+Deploy this app and provide the link below, along with the github link for the code
+
+None of the services required to complete this task will incur any charges
