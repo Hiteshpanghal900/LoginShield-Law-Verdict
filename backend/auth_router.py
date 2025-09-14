@@ -23,7 +23,6 @@ def active_sessions(user_id: str):
             if not sessions:
                 return {"sessions": [], "total_devices": 0}
 
-            # Sort by last_interacted_at (latest first)
             sorted_sessions = sorted(
                 sessions,
                 key=itemgetter("last_interacted_at"),
@@ -41,6 +40,27 @@ def active_sessions(user_id: str):
             raise HTTPException(
                 status_code=response.status_code,
                 detail=f"Failed to fetch sessions: {response.text}",
+            )
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+        
+@router.delete("/user-sessions/{session_id}")
+def logout_session(session_id: str):
+    try:
+        url = f"https://{AUTH0_DOMAIN}/api/v2/sessions/{session_id}"
+        headers = {
+            "Authorization": f"Bearer {ACCESS_TOKEN}"
+        }
+
+        response = requests.delete(url, headers=headers)
+
+        if response.status_code in [200, 204]:
+            return {"message": f"Session {session_id} logged out successfully"}
+        else:
+            raise HTTPException(
+                status_code=response.status_code,
+                detail=f"Failed to logout session: {response.text}"
             )
 
     except Exception as e:
