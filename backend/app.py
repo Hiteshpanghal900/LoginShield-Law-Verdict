@@ -1,5 +1,6 @@
 import os, json
 from fastapi import FastAPI
+import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from auth_router import router
@@ -27,3 +28,7 @@ def root():
     return {"message": "Backend is running 🚀"}
 
 app.include_router(router)
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("app:app", host="0.0.0.0", port=port, reload=True)
