@@ -23,17 +23,9 @@ def active_sessions(user_id: str):
             if not sessions:
                 return {"sessions": [], "total_devices": 0}
 
-            sorted_sessions = sorted(
-                sessions,
-                key=itemgetter("last_interacted_at"),
-                reverse=True,
-            )
-
-            filtered = sorted_sessions[1:] if len(sorted_sessions) > 1 else []
-
             return {
-                "sessions": filtered,
-                "total_devices": len(filtered),
+                "sessions": sessions,
+                "total_devices": len(sessions),
             }
 
         else:
@@ -47,12 +39,11 @@ def active_sessions(user_id: str):
         
 @router.delete("/user-sessions/{session_id}")
 def logout_session(session_id: str):
+    url = f"https://{AUTH0_DOMAIN}/api/v2/sessions/{session_id}"
+    headers = {
+        "Authorization": f"Bearer {ACCESS_TOKEN}"
+    }
     try:
-        url = f"https://{AUTH0_DOMAIN}/api/v2/sessions/{session_id}"
-        headers = {
-            "Authorization": f"Bearer {ACCESS_TOKEN}"
-        }
-
         response = requests.delete(url, headers=headers)
 
         if response.status_code in [200, 204]:
