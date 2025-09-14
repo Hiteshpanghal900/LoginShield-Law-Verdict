@@ -4,9 +4,9 @@ import { useEffect, useState } from "react";
 interface Session {
   user: {
     sub: string;
-    email: string;
+    email?: string;
   };
-  sessionId: string;
+  sessionId?: string;
 }
 
 interface ClientHomeProps {
@@ -98,7 +98,7 @@ export default function ClientHome({ session }: ClientHomeProps) {
     return (
         <div className="font-mono text-black flex flex-col items-center justify-center min-h-screen p-8 sm:p-20 bg-gray-50">
         <h1 className="text-2xl mb-8 text-black">You are Logged in!</h1>
-        <h2 className="text-2xl mb-8 text-black">Hii {session.user.email}</h2>
+        <h2 className="text-2xl mb-8 text-black">Hii {session?.user.email || "User"}</h2>
         <ul>
             {userSessions.map((s) => (
             <li key={s.id} className="mb-2">
