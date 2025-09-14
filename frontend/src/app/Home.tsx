@@ -31,14 +31,23 @@ export default function ClientHome({ session }: ClientHomeProps) {
 
     useEffect(() => {
         async function fetchUserSessions() {
-            if (!session) return;
+            if (!session) {
+                setLoading(false);
+                return;
+            }
+
             try {
-                const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/user-sessions/${session.user.sub}`);
+                const res = await fetch(
+                    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/user-sessions/${session.user.sub}`
+                );
                 if (res.ok) {
                     const data = await res.json();
                     setUserSessions(data.sessions);
 
-                    if(data.sessions.length-1 >= MAX_DEVICES){
+                    const otherSessions = data.sessions.filter(
+                        (s: UserSession) => s.id !== session?.sessionId
+                    );
+                    if (otherSessions.length >= MAX_DEVICES) {
                         setShowPopup(true);
                     } else {
                         setShowPopup(false);
@@ -47,12 +56,13 @@ export default function ClientHome({ session }: ClientHomeProps) {
             } catch (err) {
                 console.error(err);
             } finally {
-                setLoading(false);
+                setLoading(false); 
             }
         }
 
         fetchUserSessions();
-    }, [session]);
+        }, [session]);
+
 
     useEffect(() => {
         if(!session) return;
