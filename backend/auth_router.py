@@ -46,7 +46,7 @@ def logout_session(session_id: str):
     try:
         response = requests.delete(url, headers=headers)
 
-        if response.status_code in [200, 204]:
+        if response.status_code == 202:
             return {"message": f"Session {session_id} logged out successfully"}
         else:
             raise HTTPException(

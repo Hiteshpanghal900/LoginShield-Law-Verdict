@@ -118,6 +118,27 @@ export default function ClientHome({ session }: ClientHomeProps) {
             (s) =>  s.id !== session?.sessionId
         );
 
+        const handleLogout = async (sessionId: string) => {
+            try {
+                const res = await fetch(
+                    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/user-sessions/${sessionId}`,
+                    { method: "DELETE" }
+                );
+                if (res.ok) {
+                    alert(`Session ${sessionId} logged out`);
+                    setUserSessions((prev) =>
+                        prev.filter((s) => s.id !== sessionId)
+                    );
+                } else {
+                    const error = await res.json();
+                    alert(`Failed to logout: ${error.detail || res.statusText}`);
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Error logging out session");
+            }
+        };
+        
         return (
             <div className="font-mono text-black flex flex-col items-center justify-center min-h-screen p-8 sm:p-20 bg-gray-50">
             <h1 className="text-2xl mb-8 text-black">Too many devices logged in</h1>
@@ -137,7 +158,7 @@ export default function ClientHome({ session }: ClientHomeProps) {
                     })}
                     </div>
                     <div>
-                    <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+                    <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" onClick={() => handleLogout(s.id)}>
                         Logout
                     </button>
                     </div>
