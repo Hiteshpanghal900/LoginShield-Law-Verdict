@@ -31,74 +31,58 @@ export default function ClientHome({ session }: ClientHomeProps) {
 
     useEffect(() => {
         async function fetchUserSessions() {
-            if (!session) {
-                setLoading(false);
-                return;
-            }
-
+            if (!session) return;
             try {
-                const res = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/user-sessions/${session.user.sub}`
-                );
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/user-sessions/${session.user.sub}`);
                 if (res.ok) {
                     const data = await res.json();
                     setUserSessions(data.sessions);
 
-                    const otherSessions = data.sessions.filter(
-                        (s: UserSession) => s.id !== session?.sessionId
-                    );
-                    if (otherSessions.length >= MAX_DEVICES) {
+                    if(data.sessions.length >= MAX_DEVICES){
                         setShowPopup(true);
-                    } else {
-                        setShowPopup(false);
                     }
                 }
             } catch (err) {
                 console.error(err);
             } finally {
-                setLoading(false); 
+                setLoading(false);
             }
         }
 
         fetchUserSessions();
-        }, [session]);
+    }, [session]);
+        
+   // Add this inside your component
+    const handleLogout = async (sessionId: string) => {
+        try {
+            const res = await fetch(
+                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/user-sessions/${sessionId}`,
+                { method: "DELETE" }
+            );
 
+            if (res.ok) {
+                alert(`Session ${sessionId} logged out`);
 
-    useEffect(() => {
-        if(!session) return;
-
-        const interval = setInterval(async() => {
-            try{
-                const res = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/user-sessions/${session.user.sub}`
+                const updated = await fetch(
+                    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/user-sessions/${session?.user.sub}`
                 );
-                if (res.ok) {
-                    const data = await res.json();
-                    const currentSessionExists = data.sessions.some(
-                        (s: UserSession) => s.id === session.sessionId
-                    );
-                    if (!currentSessionExists) {
-                        clearInterval(interval);
-                        alert("You were logged out from this session.");
-                        window.location.href = "/auth/login";
-                    }
+                if (updated.ok) {
+                    const data = await updated.json();
+                    setUserSessions(data.sessions);
+
+                    if (data.sessions.length >= MAX_DEVICES) setShowPopup(false);
                 }
-            } catch(err){
-                console.error(err);
+            } else {
+                const error = await res.json();
+                alert(`Failed to logout: ${error.detail || res.statusText}`);
             }
-        }, 5000)
+        } catch (err) {
+            console.error(err);
+            alert("Error logging out session");
+        }
+    };
 
-        return() => clearInterval(interval)
-    }, [session])
-
-    if (loading) {
-        return (
-            <div className="font-mono flex flex-col items-center justify-center min-h-screen p-8 sm:p-20 bg-gray-50">
-            <h1 className="text-2xl mb-8 text-black">Loading...</h1>
-            </div>
-        );
-    }
-
+  
     if (!session) {
         return (
         <div className="font-mono flex flex-col items-center justify-center min-h-screen p-8 sm:p-20 bg-gray-50">
@@ -112,61 +96,33 @@ export default function ClientHome({ session }: ClientHomeProps) {
         );
     }
 
-        
-    if (showPopup) {
-        const otherSessions = userSessions.filter(
-            (s) =>  s.id !== session?.sessionId
-        );
-
-        const handleLogout = async (sessionId: string) => {
-            try {
-                const res = await fetch(
-                    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/user-sessions/${sessionId}`,
-                    { method: "DELETE" }
-                );
-                if (res.ok) {
-                    alert(`Session ${sessionId} logged out`);
-                    setUserSessions((prev) =>
-                        prev.filter((s) => s.id !== sessionId)
-                    );
-                } else {
-                    const error = await res.json();
-                    alert(`Failed to logout: ${error.detail || res.statusText}`);
-                }
-            } catch (err) {
-                console.error(err);
-                alert("Error logging out session");
-            }
-        };
-        
+    if(showPopup){
         return (
             <div className="font-mono text-black flex flex-col items-center justify-center min-h-screen p-8 sm:p-20 bg-gray-50">
             <h1 className="text-2xl mb-8 text-black">Too many devices logged in</h1>
             <ul>
-                {otherSessions.map((s) => (
-                <li
-                    key={s.id}
-                    className="mb-2 flex items-center justify-between w-full"
-                >
+                {userSessions.map((s) => (
+                <li key={s.id} className="mb-2 flex items-center justify-between w-full">
                     <div>
-                    <strong>User ID:</strong> {s.user_id} <br />
-                    <strong>Device IP:</strong> {s.device.initial_ip} <br />
-                    <strong>Last Interaction:</strong>{" "}
-                    {new Date(s.last_interacted_at).toLocaleString("en-IN", {
-                        timeZone: "Asia/Kolkata",
-                        hour12: true,
-                    })}
+                        <strong>User ID:</strong> {s.user_id} <br />
+                        <strong>Device IP:</strong> {s.device.initial_ip} <br />
+                        <strong>Last Interaction:</strong>{" "}
+                        {new Date(s.last_interacted_at).toLocaleString("en-IN", {
+                            timeZone: "Asia/Kolkata",
+                            hour12: true,
+                        })}
                     </div>
                     <div>
-                    <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" onClick={() => handleLogout(s.id)}>
+                        <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" onClick={() => handleLogout(s.id)}>
                         Logout
-                    </button>
+                        </button>
                     </div>
                 </li>
                 ))}
             </ul>
             </div>
-        );
+        )
+
     }
 
 
