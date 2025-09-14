@@ -12,7 +12,8 @@ app = FastAPI()
 # CORS Middleware
 origins = [
     "http://localhost:3000",
-    "http://192.168.1.9:3000"
+    "http://192.168.1.9:3000",
+    "https://loginshield-law-verdict-frontend.onrender.com"
 ]
 
 app.add_middleware(

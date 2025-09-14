@@ -76,7 +76,10 @@ export default function ClientHome({ session }: ClientHomeProps) {
                         <strong>User ID:</strong> {s.user_id} <br />
                         <strong>Device IP:</strong> {s.device.initial_ip} <br />
                         <strong>Last Interaction:</strong>{" "}
-                        {new Date(s.last_interacted_at).toLocaleString()}
+                        {new Date(s.last_interacted_at).toLocaleString("en-IN", {
+                            timeZone: "Asia/Kolkata",
+                            hour12: true,
+                        })}
                     </div>
                     <div>
                         <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
