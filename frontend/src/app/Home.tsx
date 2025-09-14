@@ -38,8 +38,10 @@ export default function ClientHome({ session }: ClientHomeProps) {
                     const data = await res.json();
                     setUserSessions(data.sessions);
 
-                    if(data.sessions.length >= MAX_DEVICES){
+                    if(data.sessions.length-1 >= MAX_DEVICES){
                         setShowPopup(true);
+                    } else {
+                        setShowPopup(false);
                     }
                 }
             } catch (err) {
@@ -51,7 +53,42 @@ export default function ClientHome({ session }: ClientHomeProps) {
 
         fetchUserSessions();
     }, [session]);
-        
+
+    useEffect(() => {
+        if(!session) return;
+
+        const interval = setInterval(async() => {
+            try{
+                const res = await fetch(
+                    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/user-sessions/${session.user.sub}`
+                );
+                if (res.ok) {
+                    const data = await res.json();
+                    const currentSessionExists = data.sessions.some(
+                        (s: UserSession) => s.id === session.sessionId
+                    );
+                    if (!currentSessionExists) {
+                        clearInterval(interval);
+                        alert("You were logged out from this session.");
+                        window.location.href = "/auth/login";
+                    }
+                }
+            } catch(err){
+                console.error(err);
+            }
+        }, 5000)
+
+        return() => clearInterval(interval)
+    }, [session])
+
+    if (loading) {
+        return (
+            <div className="font-mono flex flex-col items-center justify-center min-h-screen p-8 sm:p-20 bg-gray-50">
+            <h1 className="text-2xl mb-8 text-black">Loading...</h1>
+            </div>
+        );
+    }
+
     if (!session) {
         return (
         <div className="font-mono flex flex-col items-center justify-center min-h-screen p-8 sm:p-20 bg-gray-50">
@@ -65,33 +102,40 @@ export default function ClientHome({ session }: ClientHomeProps) {
         );
     }
 
-    if(showPopup){
+        
+    if (showPopup) {
+        const otherSessions = userSessions.filter(
+            (s) =>  s.id !== session?.sessionId
+        );
+
         return (
             <div className="font-mono text-black flex flex-col items-center justify-center min-h-screen p-8 sm:p-20 bg-gray-50">
             <h1 className="text-2xl mb-8 text-black">Too many devices logged in</h1>
             <ul>
-                {userSessions.map((s) => (
-                <li key={s.id} className="mb-2 flex items-center justify-between w-full">
+                {otherSessions.map((s) => (
+                <li
+                    key={s.id}
+                    className="mb-2 flex items-center justify-between w-full"
+                >
                     <div>
-                        <strong>User ID:</strong> {s.user_id} <br />
-                        <strong>Device IP:</strong> {s.device.initial_ip} <br />
-                        <strong>Last Interaction:</strong>{" "}
-                        {new Date(s.last_interacted_at).toLocaleString("en-IN", {
-                            timeZone: "Asia/Kolkata",
-                            hour12: true,
-                        })}
+                    <strong>User ID:</strong> {s.user_id} <br />
+                    <strong>Device IP:</strong> {s.device.initial_ip} <br />
+                    <strong>Last Interaction:</strong>{" "}
+                    {new Date(s.last_interacted_at).toLocaleString("en-IN", {
+                        timeZone: "Asia/Kolkata",
+                        hour12: true,
+                    })}
                     </div>
                     <div>
-                        <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+                    <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
                         Logout
-                        </button>
+                    </button>
                     </div>
                 </li>
                 ))}
             </ul>
             </div>
-        )
-
+        );
     }
 
 
